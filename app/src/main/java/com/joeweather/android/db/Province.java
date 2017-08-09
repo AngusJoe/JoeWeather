@@ -1,33 +1,32 @@
 package com.joeweather.android.db;
+import org.litepal.crud.DataSupport;
 
-/**
- * Created by hp on 2017/8/3.
- */
-
-public class Province extends DataSupport{
+public class Province extends DataSupport {
     private int id;
     private String provinceName;
-    private int privinceCode;
-    private int getId() {
+    private int provinceCode;
+
+    public int getId() {
         return id;
     }
-    public void setId() {
+
+    public void setId(int id) {
         this.id = id;
     }
 
-    public String getProvinceName(String provinceName) {
+    public String getProvinceName() {
         return provinceName;
     }
 
-    public void setProvinceName() {
+    public void setProvinceName(String provinceName) {
         this.provinceName = provinceName;
     }
 
-    public int getPrivinceCode() {
-        return privinceCode;
+    public int getProvinceCode() {
+        return provinceCode;
     }
 
-    public void setPrivinceCode(int privinceCode) {
-        this.privinceCode = privinceCode;
+    public void setProvinceCode(int provinceCode) {
+        this.provinceCode = provinceCode;
     }
 }

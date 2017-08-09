@@ -1,8 +1,5 @@
 package com.joeweather.android.db;
-
-/**
- * Created by hp on 2017/8/3.
- */
+import org.litepal.crud.DataSupport;
 
 public class Country extends DataSupport {
     private int id;
