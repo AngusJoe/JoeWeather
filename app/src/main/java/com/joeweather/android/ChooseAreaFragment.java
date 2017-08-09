@@ -29,9 +29,6 @@ import java.util.List;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-/**
- * Created by hp on 2017/8/3.
- */
 
 public class ChooseAreaFragment extends Fragment {
     public static final int LEVEL_PROVINCE = 0;
@@ -42,7 +39,7 @@ public class ChooseAreaFragment extends Fragment {
     private Button backButton;
     private ListView listView;
     private ArrayAdapter<String> adapter;
-    private List<String> datalist = new ArrayList<>();
+    private List<String> dataList = new ArrayList<>();
 
     /**
      *  Province List
@@ -70,11 +67,6 @@ public class ChooseAreaFragment extends Fragment {
     private City selectedCity;
 
     /**
-     *  Country Being Chosen
-     */
-    private Country selectedCountry;
-
-    /**
      *  Chosing Level
      */
     private int currentLevel;
@@ -85,7 +77,7 @@ public class ChooseAreaFragment extends Fragment {
         titleText = (TextView) view.findViewById(R.id.title_text);
         backButton = (Button) view.findViewById(R.id.back_button);
         listView = (ListView) view.findViewById(R.id.list_view);
-        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, datalist);
+        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);
         listView.setAdapter(adapter);
         return view;
     }
@@ -126,9 +118,9 @@ public class ChooseAreaFragment extends Fragment {
         backButton.setVisibility(View.GONE);
         provinceList = DataSupport.findAll(Province.class);
         if (provinceList.size() > 0){
-            datalist.clear();
+            dataList.clear();
             for (Province province : provinceList) {
-                datalist.add(province.getProvinceName());
+                dataList.add(province.getProvinceName());
             }
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
@@ -147,9 +139,9 @@ public class ChooseAreaFragment extends Fragment {
         backButton.setVisibility(View.VISIBLE);
         cityList = DataSupport.where("provinceid =?",String.valueOf(selectedProvince.getId())).find(City.class);
         if(cityList.size() > 0) {
-            datalist.clear();
+            dataList.clear();
             for (City city : cityList) {
-                datalist.add(city.getCityName());
+                dataList.add(city.getCityName());
             }
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
@@ -169,9 +161,9 @@ public class ChooseAreaFragment extends Fragment {
         backButton.setVisibility(View.VISIBLE);
         countryList = DataSupport.where("cityid = ?",String.valueOf(selectedCity.getId())).find(Country.class);
         if (countryList.size() > 0) {
-            datalist.clear();
+            dataList.clear();
             for (Country country : countryList) {
-                datalist.add(country.getCountryName());
+                dataList.add(country.getCountryName());
             }
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
@@ -191,7 +183,19 @@ public class ChooseAreaFragment extends Fragment {
         showProgressDialog();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onFailure(okhttp3.Call call, IOException e) {
+                //通过runOnUiThread()方法回到主线流程处理逻辑
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeProgressDialog();
+                        Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 String responseText = response.body().string();
                 boolean result = false;
                 if ("province".equals(type)) {
@@ -199,7 +203,7 @@ public class ChooseAreaFragment extends Fragment {
                 } else if ("city".equals(type)) {
                     result = Utility.handleCityResponse(responseText,selectedProvince.getId());
                 } else if ("country".equals(type)) {
-                    result = Utility.handleCountryResponse(responseText,selectedCountry.getId());
+                    result = Utility.handleCountryResponse(responseText,selectedCity.getId());
                 }
                 if (result) {
                     getActivity().runOnUiThread(new Runnable() {
@@ -216,17 +220,6 @@ public class ChooseAreaFragment extends Fragment {
                         }
                     });
                 }
-            }
-            @Override
-            public void onFailure(Call call, IOException e) {
-                //通过runOnUiThread()方法回到主线流程处理逻辑
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        closeProgressDialog();
-                        Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
-                    }
-                });
             }
         });
 
