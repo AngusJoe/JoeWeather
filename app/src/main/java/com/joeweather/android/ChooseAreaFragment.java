@@ -1,9 +1,11 @@
 package com.joeweather.android;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.telecom.Call;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -94,6 +96,12 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCountries();
+                } else if (currentLevel == LEVEL_COUNTRY) {
+                    String weatherId = countryList.get(position).getWeatherId();
+                    Intent intent = new Intent(getActivity(),WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -127,7 +135,7 @@ public class ChooseAreaFragment extends Fragment {
             currentLevel = LEVEL_PROVINCE;
         } else {
             String address = "http://guolin.tech/api/china";
-            queryFormServer(address,"province");
+            queryFromServer(address,"province");
         }
     }
 
@@ -137,7 +145,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCities() {
         titleText.setText(selectedProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
-        cityList = DataSupport.where("provinceid =?",String.valueOf(selectedProvince.getId())).find(City.class);
+        cityList = DataSupport.where("provinceid = ?",String.valueOf(selectedProvince.getId())).find(City.class);
         if(cityList.size() > 0) {
             dataList.clear();
             for (City city : cityList) {
@@ -149,7 +157,7 @@ public class ChooseAreaFragment extends Fragment {
         } else {
             int provinceCode = selectedProvince.getProvinceCode();
             String address = "http://guolin.tech/api/china/" + provinceCode;
-            queryFormServer(address,"city");
+            queryFromServer(address,"city");
         }
     }
 
@@ -172,32 +180,22 @@ public class ChooseAreaFragment extends Fragment {
             int provinceCode = selectedProvince.getProvinceCode();
             int cityCode = selectedCity.getCityCode();
             String address = "http://guolin.tech/api/china/" + provinceCode + "/" + cityCode;
-            queryFormServer(address,"city");
+            queryFromServer(address,"country");
         }
     }
 
     /**
      * 根据传入的地址和类型从服务器上进行查询
      */
-    private void queryFormServer(String address, final String type) {
+    private void queryFromServer(String address, final String type) {
         showProgressDialog();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
-            @Override
-            public void onFailure(okhttp3.Call call, IOException e) {
-                //通过runOnUiThread()方法回到主线流程处理逻辑
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        closeProgressDialog();
-                        Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
 
             @Override
             public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 String responseText = response.body().string();
                 boolean result = false;
+
                 if ("province".equals(type)) {
                     result = Utility.handleProvinceResponse(responseText);
                 } else if ("city".equals(type)) {
@@ -220,6 +218,18 @@ public class ChooseAreaFragment extends Fragment {
                         }
                     });
                 }
+            }
+
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                //通过runOnUiThread()方法回到主线流程处理逻辑
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeProgressDialog();
+                        Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 

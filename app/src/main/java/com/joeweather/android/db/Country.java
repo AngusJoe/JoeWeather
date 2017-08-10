@@ -23,6 +23,14 @@ public class Country extends DataSupport {
         this.countryName = countryName;
     }
 
+    public String getWeatherId() {
+        return weatherId;
+    }
+
+    public void setWeatherId(String weatherId) {
+        this.weatherId = weatherId;
+    }
+
     public int getCityId() {
         return cityId;
     }
@@ -31,11 +39,5 @@ public class Country extends DataSupport {
         this.cityId = cityId;
     }
 
-    public String getWeatherId() {
-        return weatherId;
-    }
 
-    public void setWeatherId(String weatherId) {
-        this.weatherId = weatherId;
-    }
 }
